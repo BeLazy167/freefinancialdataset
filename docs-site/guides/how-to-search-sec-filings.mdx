@@ -8,7 +8,7 @@ This walkthrough finds a company's recent 10-K filings, then extracts one named 
 ## 1. List recent 10-Ks
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/filings?ticker=AAPL&filing_type=10-K&limit=2' \
+curl -s 'https://financialdatasets.rip/filings?ticker=AAPL&filing_type=10-K&limit=2' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 
@@ -34,7 +34,7 @@ curl -s 'https://monid-finance-api.fly.dev/filings?ticker=AAPL&filing_type=10-K&
 Take the `filing_type` and the fiscal year of the filing you found, and pull one item from it. `year` is required on this route, the auto-resolve-latest-year behavior the Financial Datasets schema describes is MCP only here.
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/filings/items?ticker=AAPL&filing_type=10-K&year=2026&item=Item%201' \
+curl -s 'https://financialdatasets.rip/filings/items?ticker=AAPL&filing_type=10-K&year=2026&item=Item%201' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 

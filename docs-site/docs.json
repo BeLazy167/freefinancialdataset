@@ -26,7 +26,7 @@
     "primary": {
       "type": "button",
       "label": "Live API",
-      "href": "https://monid-finance-api.fly.dev"
+      "href": "https://financialdatasets.rip"
     }
   },
   "navigation": {
@@ -40,7 +40,7 @@
         {
           "anchor": "Live API",
           "icon": "server",
-          "href": "https://monid-finance-api.fly.dev"
+          "href": "https://financialdatasets.rip"
         }
       ]
     },

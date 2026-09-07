@@ -10,14 +10,14 @@ This walkthrough lists more of a company's filings than fit on one page. It appl
 `limit` is a budget for the whole request, not a page size. Each response page holds a fixed number of records regardless of the `limit` you pass, 10 for most list endpoints, 100 for `/prices`. Ask for 25 filings and the first response gives you 10, plus a link to the rest.
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/filings?ticker=AAPL&limit=25' \
+curl -s 'https://financialdatasets.rip/filings?ticker=AAPL&limit=25' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 
 ```json Response, trimmed
 {
   "filings": [ ],
-  "next_page_url": "https://monid-finance-api.fly.dev/filings?ticker=AAPL&cursor=eyJvIjoxMH0"
+  "next_page_url": "https://financialdatasets.rip/filings?ticker=AAPL&cursor=eyJvIjoxMH0"
 }
 ```
 
@@ -26,7 +26,7 @@ curl -s 'https://monid-finance-api.fly.dev/filings?ticker=AAPL&limit=25' \
 Pass the URL back exactly as given. Do not construct your own cursor value, decoding `eyJvIjoxMH0` gives `{"o":10}`, a record offset, but nothing about that format is documented as stable.
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/filings?ticker=AAPL&cursor=eyJvIjoxMH0' \
+curl -s 'https://financialdatasets.rip/filings?ticker=AAPL&cursor=eyJvIjoxMH0' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 

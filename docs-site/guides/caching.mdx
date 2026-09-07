@@ -6,7 +6,7 @@ description: "What gets cached, for how long, and what a cache hit means for cos
 `GET` REST responses are cached in the server process. A cache hit skips the Monid call entirely, so it costs nothing and returns faster than a fresh call would. Every response carries an `X-Cache` header telling you which one happened.
 
 ```bash curl
-curl -si 'https://monid-finance-api.fly.dev/financial-metrics/snapshot?ticker=AAPL' \
+curl -si 'https://financialdatasets.rip/financial-metrics/snapshot?ticker=AAPL' \
   -H 'X-API-KEY: <your-api-key>' | grep -i x-cache
 ```
 

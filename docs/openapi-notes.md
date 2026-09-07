@@ -40,7 +40,7 @@ every route this server's HTTP router actually registers.
    language; where it disagreed with the current Go source (see below), the Go source
    won, since it is the literal thing this server runs.
 10. `docs/our-live-samples/*.json` — real captured responses from **our own** live
-    deployment (https://monid-finance-api.fly.dev), used for every response example that
+    deployment (https://financialdatasets.rip), used for every response example that
     has a captured sample (see "Examples" below). Financial Datasets' own captured
     output is explicitly **not** a source for this document and is not kept in this
     repository: an earlier revision of this file mistakenly copied values from it (a real
@@ -136,7 +136,7 @@ own AAPL FY2025 capture still read `2025-09-30`; since the filing join was fixed
 own capture reads `2025-09-27` too, as a public SEC fact). Every response example in
 this document is now sourced exclusively from `docs/our-live-samples/*.json` — real,
 verified responses captured from our own live deployment
-(https://monid-finance-api.fly.dev) — or, where no live sample exists, built from
+(https://financialdatasets.rip) — or, where no live sample exists, built from
 `go/fd/types.go` field names with clearly-labeled synthetic placeholder values. No value
 in this document is copied from Financial Datasets' captured output or any Financial Datasets
 page.

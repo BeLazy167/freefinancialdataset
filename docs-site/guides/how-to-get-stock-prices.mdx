@@ -10,7 +10,7 @@ This walkthrough pulls a few days of daily bars for a ticker, then checks the li
 `ticker`, `start_date`, and `end_date` are all required, this route does not default either date the way the Financial Datasets schema describes.
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/prices?ticker=AAPL&start_date=2026-08-27&end_date=2026-08-28' \
+curl -s 'https://financialdatasets.rip/prices?ticker=AAPL&start_date=2026-08-27&end_date=2026-08-28' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 
@@ -29,7 +29,7 @@ Bars come back ascending, oldest first. `time` is the bar's end date in UTC. Mea
 ## 2. Live price
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/prices/snapshot?ticker=AAPL' \
+curl -s 'https://financialdatasets.rip/prices/snapshot?ticker=AAPL' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 
@@ -52,7 +52,7 @@ Measured cost: \$0.0006.
 `interval` accepts `day`, `week`, `month`, or `year`. This server sources daily bars and aggregates the wider intervals locally, so a weekly call over the same date range costs the same as a daily one, the aggregation happens after the fetch, not as a separate provider call.
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/prices?ticker=AAPL&start_date=2026-07-01&end_date=2026-08-28&interval=week' \
+curl -s 'https://financialdatasets.rip/prices?ticker=AAPL&start_date=2026-07-01&end_date=2026-08-28&interval=week' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 

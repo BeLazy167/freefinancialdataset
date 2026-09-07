@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://monid-finance-api.fly.dev",
+      "url": "https://financialdatasets.rip",
       "description": "Production (Fly.io)."
     }
   ],
@@ -2505,7 +2505,7 @@
                         "AB",
                         "..."
                       ],
-                      "next_page_url": "https://monid-finance-api.fly.dev/kpi/metrics/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
+                      "next_page_url": "https://financialdatasets.rip/kpi/metrics/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
                     }
                   }
                 }
@@ -4143,7 +4143,7 @@
                         "AB",
                         "..."
                       ],
-                      "next_page_url": "https://monid-finance-api.fly.dev/institutional-holdings/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
+                      "next_page_url": "https://financialdatasets.rip/institutional-holdings/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
                     }
                   }
                 }
@@ -4715,7 +4715,7 @@
                         "AB",
                         "..."
                       ],
-                      "next_page_url": "https://monid-finance-api.fly.dev/company/facts/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
+                      "next_page_url": "https://financialdatasets.rip/company/facts/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
                     }
                   }
                 }
@@ -4842,7 +4842,7 @@
                         "AB",
                         "..."
                       ],
-                      "next_page_url": "https://monid-finance-api.fly.dev/earnings/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
+                      "next_page_url": "https://financialdatasets.rip/earnings/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
                     }
                   }
                 }
@@ -4922,7 +4922,7 @@
                         "AB",
                         "..."
                       ],
-                      "next_page_url": "https://monid-finance-api.fly.dev/filings/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
+                      "next_page_url": "https://financialdatasets.rip/filings/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
                     }
                   }
                 }
@@ -5050,7 +5050,7 @@
                         "AB",
                         "..."
                       ],
-                      "next_page_url": "https://monid-finance-api.fly.dev/financial-metrics/snapshot/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
+                      "next_page_url": "https://financialdatasets.rip/financial-metrics/snapshot/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
                     }
                   }
                 }
@@ -5130,7 +5130,7 @@
                         "AB",
                         "..."
                       ],
-                      "next_page_url": "https://monid-finance-api.fly.dev/prices/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
+                      "next_page_url": "https://financialdatasets.rip/prices/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
                     }
                   }
                 }
@@ -5210,7 +5210,7 @@
                         "AB",
                         "..."
                       ],
-                      "next_page_url": "https://monid-finance-api.fly.dev/prices/snapshot/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
+                      "next_page_url": "https://financialdatasets.rip/prices/snapshot/tickers?cursor=eyJvIjoxMDAwfQ&limit=1000"
                     }
                   }
                 }

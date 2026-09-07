@@ -8,7 +8,7 @@ This walkthrough pulls a company's income statement, balance sheet, cash flow st
 ## 1. Income statement
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/financials/income-statements?ticker=AAPL&period=annual&limit=1' \
+curl -s 'https://financialdatasets.rip/financials/income-statements?ticker=AAPL&period=annual&limit=1' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 
@@ -36,7 +36,7 @@ Measured cost: \$0.0012.
 ## 2. Balance sheet
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/financials/balance-sheets?ticker=AAPL&period=annual&limit=1' \
+curl -s 'https://financialdatasets.rip/financials/balance-sheets?ticker=AAPL&period=annual&limit=1' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 
@@ -59,7 +59,7 @@ Measured cost: \$0.0012.
 ## 3. Cash flow statement
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/financials/cash-flow-statements?ticker=AAPL&period=annual&limit=1' \
+curl -s 'https://financialdatasets.rip/financials/cash-flow-statements?ticker=AAPL&period=annual&limit=1' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 
@@ -83,7 +83,7 @@ Measured cost: \$0.0012.
 The three statements above cover filed history. They carry no live market price, so `enterprise_value` and every `price_to_*` ratio are left out on purpose. Pull the snapshot route for those.
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/financial-metrics/snapshot?ticker=AAPL' \
+curl -s 'https://financialdatasets.rip/financial-metrics/snapshot?ticker=AAPL' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 

@@ -21,7 +21,7 @@ import time
 import urllib.error
 import urllib.request
 
-OURS = os.environ.get("OURS_BASE", "https://monid-finance-api.fly.dev")
+OURS = os.environ.get("OURS_BASE", "https://financialdatasets.rip")
 FD = "https://api.financialdatasets.ai"
 PAUSE_SECONDS = float(os.environ.get("PAUSE_SECONDS", "2.5"))
 TIMEOUT = 120

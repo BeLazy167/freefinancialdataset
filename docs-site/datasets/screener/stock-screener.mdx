@@ -28,7 +28,7 @@ The request body needs a `filters` array with at least one filter object, each w
 This repo has no committed live capture for this route. `ticker` and `exchange` below are real; `market_cap` and the price fields are illustrative placeholders, not a claim about real current market values.
 
 ```bash curl
-curl -s -X POST 'https://monid-finance-api.fly.dev/financials/search/screener' \
+curl -s -X POST 'https://financialdatasets.rip/financials/search/screener' \
   -H 'X-API-KEY: <your-api-key>' \
   -H 'Content-Type: application/json' \
   -d '{"filters": [{"field": "exchange", "operator": "eq", "value": "NASDAQ"}], "limit": 2}'

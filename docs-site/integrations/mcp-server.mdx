@@ -3,7 +3,7 @@ title: "MCP Server"
 description: "Connect Claude, Cursor, or Claude Code to the MCP endpoint at /mcp."
 ---
 
-`https://monid-finance-api.fly.dev/mcp` is a streamable-HTTP [MCP](https://modelcontextprotocol.io) endpoint. It exposes all 27 Financial Datasets-named tools, listed with full parameters in [MCP Tools](/mcp-tools/overview), and authenticates with the same `X-API-KEY` header as REST. `/api` is a working alias for the same endpoint.
+`https://financialdatasets.rip/mcp` is a streamable-HTTP [MCP](https://modelcontextprotocol.io) endpoint. It exposes all 27 Financial Datasets-named tools, listed with full parameters in [MCP Tools](/mcp-tools/overview), and authenticates with the same `X-API-KEY` header as REST. `/api` is a working alias for the same endpoint.
 
 There is no separate MCP account. The `X-API-KEY` you send here is your Monid API key, and MCP calls bill your Monid wallet the same way REST calls do. See [Authentication](/overview/authentication).
 
@@ -15,7 +15,7 @@ Add a `monid-finance` entry to `claude_desktop_config.json`.
 {
   "mcpServers": {
     "monid-finance": {
-      "url": "https://monid-finance-api.fly.dev/mcp",
+      "url": "https://financialdatasets.rip/mcp",
       "headers": { "X-API-KEY": "<your-api-key>" }
     }
   }
@@ -32,7 +32,7 @@ Add the same shape to `.cursor/mcp.json` in your project, or to the global `~/.c
 {
   "mcpServers": {
     "monid-finance": {
-      "url": "https://monid-finance-api.fly.dev/mcp",
+      "url": "https://financialdatasets.rip/mcp",
       "headers": { "X-API-KEY": "<your-api-key>" }
     }
   }
@@ -44,7 +44,7 @@ Add the same shape to `.cursor/mcp.json` in your project, or to the global `~/.c
 Register the server from the CLI. No config file to edit by hand.
 
 ```bash Terminal
-claude mcp add monid-finance --transport http https://monid-finance-api.fly.dev/mcp --header "X-API-KEY: <your-api-key>"
+claude mcp add monid-finance --transport http https://financialdatasets.rip/mcp --header "X-API-KEY: <your-api-key>"
 ```
 
 ## Checking the connection

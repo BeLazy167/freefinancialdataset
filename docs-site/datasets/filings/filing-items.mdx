@@ -29,7 +29,7 @@ When no filing matches the request, this route answers `HTTP 200` with an `Error
 This repo has no committed live capture for `/filings/items`. The example below is illustrative only, field names follow `go/fd/types.go`, and the accession number and excerpt text are synthetic placeholders, not a real filing.
 
 ```bash curl
-curl -s 'https://monid-finance-api.fly.dev/filings/items?ticker=AAPL&filing_type=10-K&year=2026&item=Item%201' \
+curl -s 'https://financialdatasets.rip/filings/items?ticker=AAPL&filing_type=10-K&year=2026&item=Item%201' \
   -H 'X-API-KEY: <your-api-key>'
 ```
 
