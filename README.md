@@ -28,7 +28,7 @@ It replaces the paid research layer of **Financial Datasets API** (financialdata
 The server is a single Go binary. There is no Python, Node, CLI, or proxy hop.
 
 ```bash
-git clone https://github.com/BeLazy167/monid-us-finance-mcp-2026.git
+git clone https://github.com/BeLazy167/freefinancialdataset.git
 cd monid-us-finance-mcp-2026/go
 
 go build ./...

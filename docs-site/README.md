@@ -94,7 +94,7 @@ mint deploy
 
 ## What's left for a human
 
-- [ ] Create a Mintlify account and connect this GitHub repository (`BeLazy167/monid-us-finance-mcp-2026`) through the Mintlify GitHub app, with `docs-site/` as the docs root.
+- [ ] Create a Mintlify account and connect this GitHub repository (`BeLazy167/freefinancialdataset`) through the Mintlify GitHub app, with `docs-site/` as the docs root.
 - [ ] Decide whether to fix the `info.license` conflict in `docs/openapi.json` upstream (drop `url`, keep `identifier`) so future copies don't need the manual edit described above.
 - [ ] Replace the placeholder `logo/logo-*.svg` and `favicon.svg` with real brand assets when they exist. The current SVGs are a simple wordmark in the site's palette (`#6D28D9` / `#A78BFA` / `#4C1D95`), not final branding.
 - [ ] Decide the production domain (point the existing Vercel domain at Mintlify, or use a Mintlify-issued or custom domain) and cut over DNS once the new site is verified.

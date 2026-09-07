@@ -35,7 +35,7 @@
         {
           "anchor": "GitHub",
           "icon": "github",
-          "href": "https://github.com/BeLazy167/monid-us-finance-mcp-2026"
+          "href": "https://github.com/BeLazy167/freefinancialdataset"
         },
         {
           "anchor": "Live API",
@@ -173,7 +173,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/BeLazy167/monid-us-finance-mcp-2026"
+      "github": "https://github.com/BeLazy167/freefinancialdataset"
     }
   },
   "styling": {
