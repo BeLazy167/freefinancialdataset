@@ -1,7 +1,7 @@
 # Monid US Finance MCP (Financial Datasets API Alternative)
 
 **Live API:** https://financialdatasets.rip
-**Docs:** https://ripfinancialdatasets.mintlify.app
+**Docs:** https://docs.financialdatasets.rip
 **MCP endpoint:** `https://financialdatasets.rip/mcp` (also served at `/api`)
 
 Bring your own Monid API key: send it as `X-API-KEY` and every upstream call bills
