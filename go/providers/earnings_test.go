@@ -119,13 +119,29 @@ func TestNormalizeEarnings_TenKIncludesAnnualBlock(t *testing.T) {
 	requireFloat(t, "quarterly.revenue_yoy_chg", quarterly.RevenueYoYChg, (80.0-40.0)/40.0)
 }
 
-func TestNormalizeEarnings_NoMatchingFilingsIsSchemaDrift(t *testing.T) {
-	value := parseFixture(t, gateBStatementsFixtureJSON)
-	_, err := NormalizeEarnings(value, []RawFiling{{Form: "8-K", ReportDate: "2025-12-31", FilingDate: "2026-01-01", PrimaryDocumentURL: "https://www.sec.gov/Archives/edgar/data/1/000000000000000001a.htm"}}, "AAPL", 10)
-	if err == nil {
-		t.Fatal("want SchemaDriftError when no 10-K/10-Q rows are present")
+func TestNormalizeEarnings_NoSupportedFilingsReturnsEmpty(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		rows []RawFiling
+	}{
+		{"empty index", nil},
+		{"unsupported forms", []RawFiling{{Form: "8-K", ReportDate: "2025-12-31", FilingDate: "2026-01-01", PrimaryDocumentURL: "https://www.sec.gov/Archives/edgar/data/1/000000000000000001a.htm"}}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := NormalizeEarnings(parseFixture(t, gateBStatementsFixtureJSON), tc.rows, "NBIS", 8)
+			if err != nil {
+				t.Fatalf("valid index without supported filings: %v", err)
+			}
+			if len(data.Records) != 0 {
+				t.Fatalf("want no earnings, got %d", len(data.Records))
+			}
+		})
 	}
+}
+
+func TestNormalizeEarnings_MalformedSupportedFilingIsSchemaDrift(t *testing.T) {
+	_, err := NormalizeEarnings(parseFixture(t, gateBStatementsFixtureJSON), []RawFiling{{Form: "10-K"}}, "NBIS", 8)
 	if _, ok := err.(*SchemaDriftError); !ok {
-		t.Fatalf("want *SchemaDriftError, got %T", err)
+		t.Fatalf("want *SchemaDriftError, got %T: %v", err, err)
 	}
 }
