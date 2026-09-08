@@ -1270,6 +1270,14 @@ func (c *callCtx) getStockPrices(args map[string]any) (Result, error) {
 			return Result{}, err
 		}
 		prices, err = providers.NormalizeNasdaqPrices(run.Output, start.Format(dateLayout), end.Format(dateLayout), interval)
+		var incomplete *providers.IncompletePricesError
+		if errors.As(err, &incomplete) {
+			run, err = c.run("yahoo-finance", "/get_historical_data", nil, map[string]any{"symbol": symbol, "range": "5y", "interval": "1d"})
+			if err != nil {
+				return Result{}, err
+			}
+			prices, err = providers.NormalizeYahooPrices(run.Output, symbol, start.Format(dateLayout), end.Format(dateLayout), interval, incomplete.Dates)
+		}
 	} else {
 		prices, err = providers.NormalizePrices(run.Output, start.Format(dateLayout), end.Format(dateLayout), interval)
 	}

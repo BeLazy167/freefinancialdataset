@@ -9,6 +9,19 @@ import (
 	"github.com/belazy/monid-finance/fd"
 )
 
+// IncompletePricesError identifies explicit missing values in otherwise
+// structured Nasdaq bars. Dates lets a fallback prove it covers the same days.
+type IncompletePricesError struct {
+	Dates []string
+}
+
+func (e *IncompletePricesError) Error() string {
+	return "Nasdaq historical quotes contain missing OHLCV values"
+}
+
+// Unwrap preserves the existing schema-error classification if no fallback runs.
+func (e *IncompletePricesError) Unwrap() error { return schemaDriftf("%s", e.Error()) }
+
 // NormalizeNasdaqPrices converts Nasdaq daily historical quotes to the same
 // validated, date-filtered and aggregated bars as the primary price provider.
 func NormalizeNasdaqPrices(raw json.RawMessage, startDate, endDate, interval string) ([]fd.Price, error) {
@@ -41,13 +54,37 @@ func NormalizeNasdaqPrices(raw json.RawMessage, startDate, endDate, interval str
 	if *payload.TotalRecords != len(rows) {
 		return nil, schemaDriftf("Nasdaq historical quotes returned %d of %d rows", len(rows), *payload.TotalRecords)
 	}
-	bars := make([][]float64, 0, len(rows))
+	dates := make([]time.Time, len(rows))
+	requiredDates := make([]string, 0, len(rows))
+	incomplete := false
 	for i, row := range rows {
 		date, err := time.Parse("01/02/2006", row["date"])
 		if err != nil {
 			return nil, schemaDriftf("Nasdaq historical quote %d has invalid date", i)
 		}
-		bar := []float64{float64(date.Unix())}
+		dates[i] = date
+		day := date.Format("2006-01-02")
+		if day < startDate || day > endDate {
+			continue
+		}
+		requiredDates = append(requiredDates, day)
+		for _, key := range []string{"open", "high", "low", "close", "volume"} {
+			switch strings.ToUpper(strings.TrimSpace(row[key])) {
+			case "", "N/A", "--":
+				incomplete = true
+			}
+		}
+	}
+	if incomplete {
+		return nil, &IncompletePricesError{Dates: requiredDates}
+	}
+	bars := make([][]float64, 0, len(rows))
+	for i, row := range rows {
+		day := dates[i].Format("2006-01-02")
+		if day < startDate || day > endDate {
+			continue
+		}
+		bar := []float64{float64(dates[i].Unix())}
 		for _, key := range []string{"open", "high", "low", "close", "volume"} {
 			value, err := strconv.ParseFloat(strings.ReplaceAll(strings.TrimPrefix(strings.TrimSpace(row[key]), "$"), ",", ""), 64)
 			if err != nil {
