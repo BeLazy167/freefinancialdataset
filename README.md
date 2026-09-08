@@ -1,183 +1,123 @@
-# Monid US Finance MCP (Financial Datasets API Alternative)
+# Monid US Finance MCP
 
-**Live API:** https://financialdatasets.rip
-**Docs:** https://docs.financialdatasets.rip
-**MCP endpoint:** `https://financialdatasets.rip/mcp` (also served at `/api`)
+A Go server for US financial data, available through REST and the Model Context Protocol. MCP lets an AI client request data through named tools such as `get_income_statement` and `get_stock_prices`.
 
-Bring your own Monid API key: send it as `X-API-KEY` and every upstream call bills
-your own Monid wallet. We never store or log keys.
+The server implements the 27 Financial Datasets MCP tool names and exposes compatible REST routes. It sources data independently through Monid and converts provider responses into Financial Datasets response shapes. It is not affiliated with Financial Datasets. Matching the interface does not mean matching its data coverage, history, or licensing.
+
+- [API](https://financialdatasets.rip)
+- [Documentation](https://docs.financialdatasets.rip)
+- MCP endpoint: `https://financialdatasets.rip/mcp`, also available at `/api`
+
+## Make a request
+
+Send your Monid API key in the `X-API-KEY` header. When a request needs an upstream provider call, Monid charges your wallet.
 
 ```bash
-curl -H "X-API-KEY: monid_live_..." \
-  "https://financialdatasets.rip/financials/income-statements?ticker=AAPL&period=annual&limit=1"
+export MONID_API_KEY='your-monid-api-key'
+
+curl -H "X-API-KEY: $MONID_API_KEY" \
+  'https://financialdatasets.rip/financials/income-statements?ticker=AAPL&period=annual&limit=1'
 ```
 
-An agent-native, US-first financial data MCP server built for the September 2026 Monid Hackathon.
+This asks for Apple's latest annual income statement. Change `ticker` to select a company, `period` to select the reporting period, and `limit` to control the number of records.
 
-It replaces the paid research layer of **Financial Datasets API** (financialdatasets.ai — Build at $200/month with 100,000 requests included and $10 per additional 1,000) with live, pay-per-call routing across SEC EDGAR, DefiLlama US equities, and Context.dev via Monid.
+For an MCP client, use the endpoint above and configure the same header. To print connection examples for the hosted server:
 
-## Key Properties
+```bash
+make connect URL=https://financialdatasets.rip
+```
 
-- **100% Contract Parity**: Implements the identical 27 MCP tool names, input parameters, and response schemas as Financial Datasets API. Responses contain only official schema keys in OpenAPI property order.
-- **Auditable Measured Receipts**: Provenance, costs, and run IDs are written to a receipts ledger (set `RECEIPTS_PATH`). 51 priced live calls total **$0.0515 USD**, a mean of **$0.00101 per call**. Every figure below is read off that ledger, not estimated.
-- **Zero Mock Data**: Never fabricates numbers. If a field or tool cannot be honestly sourced, it is omitted or returns a zero-cost typed error.
-- **Deterministic SEC Parsing**: `get_filing_items` extracts canonical 10-K/10-Q/8-K sections using rule-based parsing with zero LLM hallucination risk.
+## Run locally
 
-## Quickstart
-
-The server is a single Go binary. There is no Python, Node, CLI, or proxy hop.
+Install Go 1.22 or newer and Make, then run these commands:
 
 ```bash
 git clone https://github.com/BeLazy167/freefinancialdataset.git
-cd freefinancialdataset/go
-
-go build ./...
-go vet ./...
-go test ./... -race
+cd freefinancialdataset
+make run
 ```
 
-Run it locally, then call it with your own Monid key:
+The server listens on port 8080 and serves REST, MCP, and the static website. `make run` sets the paths to the provider allowlist and website for you. The server can start without an API key. Send your key with each data request.
+
+In another terminal:
 
 ```bash
-go run ./cmd/server            # listens on :8080, serves REST, /mcp and the static site
+curl http://localhost:8080/healthz
 
-curl -H "X-API-KEY: monid_live_..." \
-  "http://localhost:8080/financials/income-statements?ticker=AAPL&period=annual&limit=1"
+export MONID_API_KEY='your-monid-api-key'
+curl -H "X-API-KEY: $MONID_API_KEY" \
+  'http://localhost:8080/financials/income-statements?ticker=AAPL&period=annual&limit=1'
 ```
 
-Every Monid call is appended to a receipts ledger when `RECEIPTS_PATH` is set; the
-ledger is best-effort observability and never a response dependency.
+For local MCP access, use `http://localhost:8080/mcp` with the same header.
 
-## Self-deploy
+## How requests work
 
-One command from a fresh clone. The server holds no secret of its own; callers
-bring their own Monid key on each request, so a deployment needs a Fly account
-and nothing else.
+REST routes and MCP tools call the same Go service handlers. The handlers validate arguments, select an allowed provider endpoint, and call Monid with the caller's key. If a provider runs asynchronously, the server polls for its result before returning the data.
+
+The service converts each result into the expected response shape. It omits optional fields it cannot source and returns an error when it cannot fulfill a request. For filing sections, it parses SEC item headings locally to extract the requested text.
+
+A request can need several upstream calls. Cash flow statements, for example, use MarketBeat after checks against SEC filings found incorrect subtotals in the normalized feed. This adds a provider call. Income statements and balance sheets use the normalized feed.
+
+### Caching and cost
+
+There is no fixed cost per API request. Cost depends on the providers called and whether the data is already cached.
+
+REST responses are cached in memory and shared across callers by default. A cache hit avoids another provider call. Set `CACHE_URL` to use Redis or Upstash across machines and deployments. Set `CACHE_PER_CALLER=1` to keep separate REST cache entries for each caller.
+
+To record upstream run IDs, status, and measured costs locally:
 
 ```bash
-make deploy      # builds on Fly's remote builders (no local Docker), ships, verifies
-make connect     # prints the MCP connector config for Claude Code, Cursor, claude.ai
+RECEIPTS_PATH=../receipts/ledger.jsonl make run
 ```
 
-Other paths:
+The path is relative to `go/`, where `make run` starts the server. Receipt recording is optional. An unwritable ledger does not block a response.
+
+## Coverage and limits
+
+The server provides financial statements, stock prices, filings and filing sections, ownership data, news, screening, and other financial data. The [MCP tool definitions](go/mcpserver/tool_schemas.json) and [OpenAPI specification](docs/openapi.json) describe the available operations and inputs.
+
+Data availability and freshness depend on the source. Some tools support fewer filters or return fewer fields than Financial Datasets. For example, stock screening supports `exchange` and `market_cap` equality filters, and cash flow statements omit `share_based_compensation` and `ending_cash_balance` when the source does not provide them.
+
+This is not a real-time trading feed. It does not provide tick WebSockets or guarantee the same history, redistribution rights, or uptime as Financial Datasets. Check the [route notes](docs/openapi-notes.md) before switching an existing client.
+
+## Configure and deploy
+
+[.env.example](.env.example) lists the settings for authentication, rate limits, browser origins, caching, and receipts. Export the variables you need before starting the server. It does not load `.env` files automatically.
+
+To deploy on Fly.io, install `flyctl`, sign in, and choose an app name:
 
 ```bash
-make run         # serve locally on :8080
-make docker      # build the 3.4 MB distroless image yourself
-make test        # full suite under the race detector
-make help        # every target
+make deploy APP=your-app-name
+make connect APP=your-app-name
 ```
 
-`make verify` compares the `version` that `/healthz` reports with your `HEAD`
-commit, so a stale deployment fails loudly. CI runs the same deploy on every
-green push to `main` once the repository holds a `FLY_API_TOKEN` secret
-(`flyctl tokens create deploy`); without the secret the deploy job is skipped.
+`make deploy` builds remotely, deploys the server, and checks that `/healthz` reports the current commit. You can repeat that check with `make verify APP=your-app-name`.
 
-`fly.toml` keeps one machine warm so the connector never cold-starts. Set
-`RECEIPTS_PATH` to write a per-call cost ledger and `CORS_ALLOWED_ORIGINS` to
-lock browser access to your own domain; every variable is documented in
-`.env.example`. Any host that runs a container works: the `Dockerfile` is a
-two-stage static build onto `distroless/static`.
+For another container host, `make docker` builds the image defined by [Dockerfile](Dockerfile). The container runs one Go binary and serves the API and website together.
 
-## Cost: measured, with the caveat stated
+## Work on the server
 
-Financial Datasets prices by request count, not by dataset. Both paid plans work out
-to the same effective rate on included volume; the tiers buy volume and rights
-(redistribution, webhooks, uptime SLAs), not a cheaper unit.
+```bash
+make build   # compile to bin/server
+make test    # run tests with the race detector
+make vet     # check formatting and run go vet
+make help    # list available targets
+```
 
-| | Financial Datasets | Monid US Finance MCP |
-|---|---|---|
-| **Entry cost** | $200/month, before the first request | $0.0006, no subscription |
-| **Build** | $200/mo, 100,000 requests included, $10 per additional 1,000 | — |
-| **Scale** | $2,000/mo, 1,000,000 requests included, $5 per additional 1,000 | — |
-| **Effective rate, included volume** | $0.00200 / request (both plans) | — |
-| **Overage rate** | $0.01000 (Build) / $0.00500 (Scale) | — |
-| **Measured rate** | — | **$0.00101 mean, $0.00060 median** |
-| **Commitment** | Monthly subscription | Pay-per-query, none |
-| **Failed runs** | Billing not itemized per call | Failure receipt written to `receipts/ledger.jsonl` |
+| Directory | What it owns |
+| --- | --- |
+| `go/cmd/server` | Startup and configuration |
+| `go/httpapi` | REST routes, authentication, caching, and rate limits |
+| `go/mcpserver` | MCP transport and tool definitions |
+| `go/service` | Shared tool handlers and provider data conversion |
+| `go/monid` | Monid requests and asynchronous run handling |
+| `go/fd` | Response shapes, pagination, and receipts |
+| `website` | Static website served by the binary |
+| `docs-site` | Documentation site |
 
-Measured distribution across 51 priced calls: **82% at $0.0006**, 14% at $0.0009,
-4% at $0.0100. The two $0.0100 calls were `nasdaq/get_stock_screener` and
-`secform4/search`.
-
-**Where we win.** The floor. Financial Datasets costs $200/month before the first
-request; the full 51-call ledger here cost $0.0515. At our measured mean we are about
-half the $0.002 included rate, and roughly 90% below the $0.010 Build overage rate.
-
-**Where we do not.** Our cost is per-route and variable, not flat. A workload made
-entirely of our $0.0100 routes costs 5x the included rate: 100,000 such calls would run
-about $1,000 here against $200 on Build. High-volume, extraction-heavy usage is cheaper
-on a Financial Datasets subscription, and this table is not an argument otherwise.
-
-We also do not offer what the paid tiers include: data redistribution rights, webhooks,
-uptime SLAs, zero data retention, bulk delivery, or 30+ years of normalized history.
-
-## Coverage
-
-### MCP tools: 27 of 27 implemented
-
-Every tool in `go/mcpserver/tool_schemas.json` runs against a live Monid route and is
-contract-tested; see the `toolHandlers` table in `go/service/tools.go`. The advertised
-tool names and input schemas are diffed against the captured Financial Datasets
-surface by test, so the two cannot silently drift. Tool descriptions are this
-server's own prose.
-
-### REST routes: all 54, with 2 honest stubs
-
-Every one of Financial Datasets' 54 REST paths is registered. 52 return data.
-Two answer
-`{"error": "not_implemented"}` at HTTP 200, with no Monid call and no charge:
-
-- `/kpi/metrics/sectors` — sector is not a dimension the shared ticker catalog
-  carries, so there is nothing honest to enumerate.
-- `/index-funds/tickers` — `get_index_fund` resolves holdings by live web search
-  per ticker; publishing the search-ranking hint list as a coverage catalog
-  would overstate what this server supports.
-
-The four `as-reported` statement routes read the rendered statement files EDGAR
-generates from a filing's own XBRL presentation linkbase, so the `line_items`
-tree is the filing's hierarchy. They match Financial Datasets' structure, not
-its labels: this server prints the label the filing prints.
-
-Several registered routes deviate deliberately, each forced by its source and
-each documented: `/ipos` and `/institutional-holdings/investors` require a
-ticker, `/company/facts/ciks` covers 8,005 CIKs against Financial Datasets'
-21,005, and `/macro/interest-rates/banks` lists the four central banks this
-server actually scrapes rather than ten. Route-by-route notes are in
-[docs/openapi-notes.md](docs/openapi-notes.md) and
-[docs/compatibility.md](docs/compatibility.md).
-
-### Cash flow is sourced from a second provider, deliberately
-
-Measured 2026-09-04 against SEC XBRL across eight large caps (AAPL, MSFT, XOM, KO, TSLA, PFE, VZ, NVDA), the normalized statements feed's cash flow subtotals came back: operating 8/8 correct, investing 0/8, financing 4/8, net change in cash 0/8. Apple FY2025 investing read 27,910,000,000 against the 10-K's 15,195,000,000; Microsoft FY2026 read -23,552,000,000 against SEC's -139,500,000,000.
-
-The cash flow statement is therefore sourced from marketbeat, which matched SEC line for line on every figure checked. That applies on every path that builds one: `get_cash_flow_statement`, `get_all_financials`, and `search_line_items` when a cash flow field is requested. Income statement and balance sheet stay on the normalized feed, which agrees with SEC where measured.
-
-Two consequences a caller will notice. marketbeat does not report `share_based_compensation` or `ending_cash_balance`, so those two fields are omitted on annual, quarterly and ttm cash flow records rather than carried over from a feed proven wrong on three of four subtotals. And the correction costs one extra provider call per statement, $0.02 measured, which is why `search_line_items` only pays it when the requested line items include a cash flow field.
-
-The defect was reported to the upstream provider on 2026-09-04.
-
-### Data freshness is measured, not assumed
-
-Feeds age differently and the docs say so per route. Measured live on 2026-09-04: the
-13D/13G beneficial-ownership feeds ran roughly six months behind, insider trading
-tracked filings within days, and the nasdaq market snapshot carried its own as-of
-timestamp. Every row carries its own sourced dates; nothing stale is described as
-current.
-
-## Honest Scope & Limitations
-
-1. **Not a Trading Terminal**: Does not provide real-time tick websocket feeds or sub-second pricing.
-2. **Normalized Depth**: Sourced from DefiLlama US equities beta and SEC EDGAR; does not claim proprietary 30-year normalized history.
-3. **No SLAs**: Distributed multi-provider routing without enterprise SLAs.
-
-## Documentation
-
-- [Compatibility & Schema Target](docs/compatibility.md)
-- [Architecture & Design Boundaries](docs/architecture.md)
-- [Live Smoke & Run Receipts](docs/live-smoke.md)
-- [Demo & Submission Kit](docs/DEMO_AND_SUBMISSION_KIT.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for route registration and test conventions.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+[MIT](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md) for source and attribution details.
