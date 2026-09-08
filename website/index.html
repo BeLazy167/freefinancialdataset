@@ -52,7 +52,7 @@ a{color:inherit}
 
   <ul>
     <li><b>Per call.</b> Median $0.0006 across the receipts ledger. Nothing due before the first request.</li>
-    <li><b>Latest prices.</b> Market cap and valuation are priced at the latest close. When we measured on Sep 6, the other side's MSFT snapshot implied $398.50 against a $499.50 tape.</li>
+    <li><b>Latest prices.</b> Market cap and valuation are computed from the latest close on every call, never read from a stored snapshot. On Sep 6 the other side's MSFT snapshot implied $398.50 against a $499.50 tape; it had refreshed by Sep 7.</li>
     <li><b>Cached.</b> Ask for the same ticker again and the answer comes back from cache in about 70ms, with no Monid call and nothing billed. Closed periods stay cached for a day.</li>
   </ul>
 
