@@ -1,9 +1,6 @@
-/* =========================================================================
-   Monid Finance MCP — docs-site custom styles
-   A calm, warm, near-monochrome system with one restrained accent.
-   Written by hand for this project. No stylesheet, class list, or color
-   value here is copied from another vendor's site.
-   ========================================================================= */
+/* financialdatasets.rip docs. Warm paper, one ledger-green accent, Inter for
+   reading, Instrument Serif for the page title only. */
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap");
 
 /* -------------------------------------------------------------------------
    1. Tokens
@@ -16,17 +13,18 @@
   --line: #DEDAD0;    /* borders and rules, must stay subtle */
   --accent: #1D5F49;  /* links, active nav, focus rings. Deep ledger green */
 
-  --font-body: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 .dark {
-  --page: #131210;
-  --surface: #1B1917;
-  --ink: #EBE8E1;
-  --muted: #948F85;
-  --line: #2B2824;
-  --accent: #5CBE92;
+  --page: #12100A;
+  --surface: #1A1710;
+  --ink: #F2EFE8;
+  --muted: #A8A296;
+  --line: #353127;
+  --accent: #8AA96B;
 }
 
 /* -------------------------------------------------------------------------
@@ -197,6 +195,47 @@ body,
 #mdx-content h1:first-child,
 #page-title {
   margin-top: 0;
+}
+
+/* The page title is the one place the display face appears. Everything
+   below it stays in Inter so scanning a long reference page is not work. */
+#page-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 2.6rem;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+#header p,
+#header [class*="description"] {
+  font-size: 1.05rem;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* Figures line up. Every table in these docs is a ledger. */
+#mdx-content table,
+#mdx-content code,
+code-block {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Browser surfaces carry the palette too. */
+::selection {
+  background: var(--ink);
+  color: var(--page);
+}
+
+#mdx-content a {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
 }
 
 eyebrow {

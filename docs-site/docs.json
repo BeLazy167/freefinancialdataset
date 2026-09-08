@@ -1,12 +1,12 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "maple",
-  "name": "Monid Finance MCP",
-  "description": "Financial Datasets-compatible US finance API and MCP server, backed by pay-per-call Monid providers.",
+  "name": "financialdatasets.rip",
+  "description": "A drop-in replacement for the Financial Datasets API. Change .ai to .rip, paste a Monid key, pay per call.",
   "colors": {
-    "primary": "#26251E",
-    "light": "#F7F7F4",
-    "dark": "#14120B"
+    "primary": "#1D5F49",
+    "light": "#8AA96B",
+    "dark": "#1D5F49"
   },
   "logo": {
     "light": "/logo/logo-light.svg",
@@ -19,14 +19,14 @@
   "navbar": {
     "links": [
       {
-        "label": "Get an API key",
-        "href": "https://bit.ly/monid-ai"
+        "label": "Live API",
+        "href": "https://financialdatasets.rip"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Live API",
-      "href": "https://financialdatasets.rip"
+      "label": "Get a Monid key",
+      "href": "https://bit.ly/monid-ai"
     }
   },
   "navigation": {
@@ -104,7 +104,7 @@
               },
               {
                 "group": "Stock Prices",
-                "icon": "candlestick-chart",
+                "icon": "chart-candlestick",
                 "pages": [
                   "datasets/prices/historical",
                   "datasets/prices/snapshot"
@@ -180,7 +180,8 @@
     "codeblocks": {
       "theme": "css-variables"
     },
-    "latex": false
+    "latex": false,
+    "eyebrows": "breadcrumbs"
   },
   "fonts": {
     "heading": {
@@ -194,8 +195,12 @@
   },
   "background": {
     "color": {
-      "light": "#F7F7F4",
-      "dark": "#14120B"
+      "light": "#F5F3EE",
+      "dark": "#12100A"
     }
+  },
+  "appearance": {
+    "default": "dark",
+    "strict": false
   }
 }

@@ -1,11 +1,34 @@
 ---
 title: "Introduction"
-description: "What Monid Finance MCP is and how it differs from a subscription-based finance API."
+description: "The Financial Datasets API, without the subscription. Same routes, same response shapes, same MCP tools, billed per call through your own Monid key."
 ---
 
-This is a US-equities finance API with an MCP server in front of it. The routes, tool names, and response shapes match the Financial Datasets interface, so an existing client can point at it by changing the base URL and the key. Calls run through Monid and bill per request against your own wallet, so a quiet week costs almost nothing.
+An existing Financial Datasets client needs one change to run here.
+
+<CodeGroup>
+```diff Base URL
+- https://api.financialdatasets.ai
++ https://api.financialdatasets.rip
+  X-API-KEY: <your Monid key>
+```
+
+```bash curl
+curl -s 'https://api.financialdatasets.rip/financials/income-statements?ticker=AAPL&period=annual&limit=1' \
+  -H 'X-API-KEY: <your Monid key>'
+```
+</CodeGroup>
+
+This is a US-equities finance API with an MCP server in front of it. The routes, tool names, and response shapes match the Financial Datasets interface, so an existing client can point at it by changing the base URL and the key. Calls run through [Monid](https://bit.ly/monid-ai) and bill per request against your own wallet, so a quiet week costs almost nothing.
 
 It is an independent, Monid-backed implementation, not affiliated with or endorsed by Financial Datasets, and it ships no Financial Datasets data or code. When this doc calls a route "compatible," it means the request and response shape match closely enough that an existing integration can switch base URLs and keep working, not that any code or data was copied.
+
+| Measured | |
+|---|---|
+| Routes answering | 55 of 55 |
+| MCP tools | 27, same names as the original |
+| Median cost per call | $0.0006, from the receipts ledger |
+| Upstream providers | 6, all reached through Monid |
+| Repeat ask, cached | 69 ms and $0, against a 5,256 ms cold ask |
 
 ## Why per-call pricing
 
@@ -26,13 +49,9 @@ The scope isn't complete. Some Financial Datasets routes aren't implemented yet,
   <Card title="MCP setup" icon="plug" href="/integrations/mcp-server">
     Connect Claude, Cursor, or Claude Code to the MCP server at `/mcp`.
   </Card>
-  <Card title="API Reference" icon="book-open" href="/api-reference">
-    Every REST endpoint, generated from the OpenAPI spec, with a request playground.
-  </Card>
-  <Card title="MCP Tools" icon="wrench" href="/mcp-tools/overview">
-    All 27 tool names and parameters, generated from the tool schema file.
-  </Card>
 </CardGroup>
+
+The [API Reference](/api-reference) covers every REST endpoint with a request playground, and [MCP Tools](/mcp-tools/overview) lists all 27 tool names and parameters.
 
 ## How the server is built
 
