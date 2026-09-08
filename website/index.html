@@ -3,44 +3,59 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Monid Finance MCP</title>
-<meta name="description" content="A Financial Datasets-compatible US finance REST API and MCP server, backed by pay-per-call Monid providers.">
+<title>financialdatasets.rip</title>
+<meta name="description" content="A drop-in replacement for the Financial Datasets API. Change .ai to .rip, paste a Monid key, pay per call.">
 <style>
 :root{--ink:#14120B;--paper:#F7F7F4;--line:#DCD8CE;--dim:#5F5B51;--accent:#9E4F3F;
   --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace}
 @media(prefers-color-scheme:dark){:root{--ink:#F2EFE8;--paper:#12100A;--line:#353127;--dim:#A8A296;--accent:#DE8A72}}
 *{box-sizing:border-box}
+:root{color-scheme:light dark}
 ::selection{background:var(--ink);color:var(--paper)}
-:root{color-scheme:light dark;accent-color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 body{margin:0;min-height:100svh;display:grid;align-content:center;background:var(--paper);color:var(--ink);
-  font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
-main{width:min(720px,100% - 48px);margin-inline:auto;padding:64px 0}
-h1{margin:0;font-size:clamp(32px,5vw,52px);line-height:1.05;letter-spacing:-.03em;font-weight:600}
-p{margin:20px 0 0;color:var(--dim);max-width:56ch;text-wrap:pretty}
-code{font-family:var(--mono);font-size:.9em}
-ul{list-style:none;margin:36px 0 0;padding:0;border-top:1px solid var(--line)}
-li{border-bottom:1px solid var(--line)}
-a.row{display:flex;gap:16px;align-items:baseline;padding:16px 2px;color:inherit;text-decoration:none}
-a.row:hover .t{text-decoration:underline;text-underline-offset:3px}
-.t{font-weight:550}
-.d{color:var(--dim);font-size:14.5px}
-footer{margin-top:36px;color:var(--dim);font-size:14px}
+  font-family:var(--sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+main{width:min(640px,100% - 48px);margin-inline:auto;padding:64px 0}
+h1{margin:0;font-size:clamp(28px,4.5vw,40px);line-height:1.1;letter-spacing:-.02em;font-weight:600}
+p{margin:16px 0 0;color:var(--dim);max-width:58ch}
+pre{margin:28px 0 0;padding:14px 16px;border:1px solid var(--line);font:15px/1.6 var(--mono);color:var(--ink);overflow-x:auto}
+pre s{color:var(--dim)}
+pre b{font-weight:600;color:var(--accent)}
+nav{margin:32px 0 0;border-top:1px solid var(--line)}
+nav a{display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}
+nav a:hover span:first-child{text-decoration:underline;text-underline-offset:3px}
+nav span:first-child{font-weight:550}
+nav span:last-child{color:var(--dim);font-family:var(--mono);font-size:14px;white-space:nowrap}
+ul{margin:32px 0 0;padding:0;list-style:none;color:var(--dim);font-size:15.5px}
+li{margin-top:10px}
+li b{font-weight:550;color:var(--ink)}
+@media(max-width:480px){nav span:last-child{display:none}}
+footer{margin-top:40px;color:var(--dim);font-size:13.5px}
+a{color:inherit}
 </style>
 </head>
 <body>
 <main>
-  <h1>Monid Finance MCP</h1>
-  <p>A Financial Datasets-compatible US finance REST API and MCP server. Send your own <a href="https://monid.ai?fpr=dhruv-15136b">Monid key</a> as
-    <code>X-API-KEY</code>; every upstream call bills your wallet, and the key is never stored or logged.</p>
+  <h1>The Financial Datasets API, without the subscription.</h1>
+  <p>Same routes, same response shapes, same MCP tools. Pay per call through your own <a href="https://monid.ai?fpr=dhruv-15136b">Monid</a> key instead of $200 a month.</p>
+
+<pre><s>- https://api.financialdatasets.ai</s>
+<b>+ https://api.financialdatasets.rip</b>
+  X-API-KEY: &lt;your Monid key&gt;</pre>
+
+  <nav>
+    <a href="https://docs.financialdatasets.rip"><span>Documentation</span><span>docs.financialdatasets.rip</span></a>
+    <a href="https://github.com/BeLazy167/freefinancialdataset"><span>Source, MIT, self-host it</span><span>github.com</span></a>
+    <a href="https://monid.ai?fpr=dhruv-15136b"><span>Get a Monid key</span><span>monid.ai</span></a>
+  </nav>
+
   <ul>
-    <li><a class="row" href="https://docs.financialdatasets.rip"><span class="t">Documentation</span><span class="d">All 55 routes, 27 MCP tools, and every known gap</span></a></li>
-    <li><a class="row" href="/kill.html"><span class="t">The head-to-head run</span><span class="d">All 55 routes against Financial Datasets, with receipts</span></a></li>
-    <li><a class="row" href="https://github.com/BeLazy167/freefinancialdataset"><span class="t">Source</span><span class="d">MIT, one Go binary, self-hostable</span></a></li>
-    <li><a class="row" href="https://monid.ai?fpr=dhruv-15136b"><span class="t">Get a Monid key</span><span class="d">Pay per call, no subscription, no seat</span></a></li>
-    <li><a class="row" href="/healthz"><span class="t">Health</span><span class="d">Build the deployment was compiled from</span></a></li>
+    <li><b>Per call.</b> Median $0.0006 across the receipts ledger. Nothing due before the first request.</li>
+    <li><b>Latest prices.</b> Market cap and valuation are priced at the latest close. When we measured on Sep 6, the other side's MSFT snapshot implied $398.50 against a $499.50 tape.</li>
+    <li><b>Cached.</b> Ask for the same ticker again and the answer comes back from cache in about 70ms, with no Monid call and nothing billed. Closed periods stay cached for a day.</li>
   </ul>
+
   <footer>Independent implementation, not affiliated with or endorsed by Financial Datasets.</footer>
 </main>
 </body>
