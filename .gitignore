@@ -32,4 +32,5 @@ receipts/private/
 receipts/
 bin/
 
-__pycache__/
+# Local investigation notes
+.audit/
