@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -1094,5 +1095,70 @@ func TestInterestRates_BOJReadsTheStatementPDF(t *testing.T) {
 		if !ok || !strings.HasSuffix(day, "-01") {
 			t.Fatalf("series points must fall on the first of a month, got %v", rate["date"])
 		}
+	}
+}
+
+// NBIS has a valid empty filings index. This must survive the full service
+// composition as an empty earnings response, not an upstream schema error.
+func TestEarnings_EmptyFilingsIndex(t *testing.T) {
+	outcomes := fullOutcomes()
+	outcomes["defillama /equities/v1/filings"] = fakeOutcome{output: []any{}}
+	svc, _ := newTestService(t, outcomes)
+	result, err := svc.Call(context.Background(), "key", "get_earnings", map[string]any{"ticker": "NBIS"})
+	if err != nil {
+		t.Fatalf("get_earnings with empty filings: %v", err)
+	}
+	if result.WrapperKey != "earnings" {
+		t.Fatalf("unexpected wrapper: %s", result.WrapperKey)
+	}
+	raw, err := json.Marshal(result.Value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(raw) != "[]" {
+		t.Fatalf("want [], got %s", raw)
+	}
+}
+
+func TestPrices_FallsBackToETFOnlyOnProvider404(t *testing.T) {
+	raw, err := os.ReadFile("../providers/testdata/nasdaq_spy_prices.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, status := range []int{404, 401, 429, 500} {
+		t.Run(fmt.Sprint(status), func(t *testing.T) {
+			svc, transport := newTestService(t, map[string]fakeOutcome{
+				"defillama /equities/v1/ohlcv":        {providerHTTPStatus: status},
+				"nasdaq /get_stock_historical_quotes": {output: json.RawMessage(raw)},
+			})
+			result, err := svc.Call(context.Background(), "key", "get_stock_prices", map[string]any{"ticker": "SPY", "start_date": "2026-09-01", "end_date": "2026-09-08"})
+			if status != 404 {
+				if err == nil || transport.CallCount() != 1 {
+					t.Fatalf("must preserve %d without fallback: %v", status, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(result.Value.([]any)) != 4 {
+				t.Fatalf("want four daily bars: %#v", result.Value)
+			}
+			calls := transport.Calls()
+			if len(calls) != 2 || calls[1].QueryParams["asset_class"] != "etf" || calls[1].QueryParams["from_date"] != "2026-09-01" || calls[1].QueryParams["to_date"] != "2026-09-08" {
+				t.Fatalf("wrong fallback: %#v", calls)
+			}
+		})
+	}
+}
+
+func TestEarnings_MalformedSupportedFilingStillFails(t *testing.T) {
+	outcomes := fullOutcomes()
+	outcomes["defillama /equities/v1/filings"] = fakeOutcome{output: []any{map[string]any{"form": "10-K"}}}
+	svc, _ := newTestService(t, outcomes)
+	_, err := svc.Call(context.Background(), "key", "get_earnings", map[string]any{"ticker": "NBIS"})
+	var schemaErr *providers.SchemaDriftError
+	if !errors.As(err, &schemaErr) {
+		t.Fatalf("want schema error, got %v", err)
 	}
 }

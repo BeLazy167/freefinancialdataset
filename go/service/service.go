@@ -1254,10 +1254,25 @@ func (c *callCtx) getStockPrices(args map[string]any) (Result, error) {
 		return Result{}, &providers.InputError{Msg: "start_date and end_date are required"}
 	}
 	run, err := c.run(defillama, ohlcvEndpoint, nil, map[string]any{"ticker": symbol, "country": "US", "timeframe": "MAX"})
+	var prices []fd.Price
 	if err != nil {
-		return Result{}, err
+		var runErr *monid.RunError
+		if !errors.As(err, &runErr) || runErr.Run == nil || runErr.Run.ProviderHTTPStatus != http.StatusNotFound {
+			return Result{}, err
+		}
+		// DefiLlama's company feed does not cover ETFs such as SPY. Ask Nasdaq
+		// only on a provider 404; auth, rate-limit and infrastructure errors stay errors.
+		run, err = c.run(nasdaq, "/get_stock_historical_quotes", nil, map[string]any{
+			"symbol": symbol, "asset_class": "etf", "from_date": start.Format(dateLayout), "to_date": end.Format(dateLayout),
+			"limit": int(end.Sub(*start).Hours()/24) + 1,
+		})
+		if err != nil {
+			return Result{}, err
+		}
+		prices, err = providers.NormalizeNasdaqPrices(run.Output, start.Format(dateLayout), end.Format(dateLayout), interval)
+	} else {
+		prices, err = providers.NormalizePrices(run.Output, start.Format(dateLayout), end.Format(dateLayout), interval)
 	}
-	prices, err := providers.NormalizePrices(run.Output, start.Format(dateLayout), end.Format(dateLayout), interval)
 	if err != nil {
 		return Result{}, err
 	}
@@ -1423,12 +1438,22 @@ func (c *callCtx) earningsForTicker(ticker string, limit int) ([]fd.EarningsReco
 func filingsToRaw(filings []fd.Filing) []providers.RawFiling {
 	out := make([]providers.RawFiling, 0, len(filings))
 	for _, f := range filings {
-		if f.FilingDate == nil || f.ReportDate == nil || f.FilingType == nil || f.URL == nil {
-			continue
+		// Preserve incomplete rows so the earnings parser can distinguish
+		// malformed supported filings from an index with no earnings coverage.
+		var row providers.RawFiling
+		if f.FilingDate != nil {
+			row.FilingDate = *f.FilingDate
 		}
-		out = append(out, providers.RawFiling{
-			FilingDate: *f.FilingDate, ReportDate: *f.ReportDate, Form: *f.FilingType, PrimaryDocumentURL: *f.URL,
-		})
+		if f.ReportDate != nil {
+			row.ReportDate = *f.ReportDate
+		}
+		if f.FilingType != nil {
+			row.Form = *f.FilingType
+		}
+		if f.URL != nil {
+			row.PrimaryDocumentURL = *f.URL
+		}
+		out = append(out, row)
 	}
 	return out
 }

@@ -89,6 +89,9 @@ func surpriseVerdict(reported, consensus float64) string {
 // record's quarterly block. A record whose quarter has no consensus is
 // left exactly as it was rather than carrying an invented one.
 func (c *callCtx) withEarningsSurprise(ticker string, records []fd.EarningsRecord) []fd.EarningsRecord {
+	if len(records) == 0 {
+		return records
+	}
 	consensus, err := c.consensusByQuarter(ticker)
 	if err != nil || len(consensus) == 0 {
 		return records

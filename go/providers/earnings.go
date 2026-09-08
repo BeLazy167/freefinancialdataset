@@ -288,6 +288,7 @@ func joinedByDate(seriesLists ...[]PeriodRow) map[time.Time]map[string]any {
 
 func earningsFilings(rows []RawFiling) ([]EarningsFiling, error) {
 	var filings []EarningsFiling
+	supportedRows := 0
 	for _, row := range rows {
 		form := strings.TrimSpace(row.Form)
 		if form == "" {
@@ -297,6 +298,7 @@ func earningsFilings(rows []RawFiling) ([]EarningsFiling, error) {
 		if _, ok := earningsForms[formUpper]; !ok {
 			continue
 		}
+		supportedRows++
 		reportPeriod, ok := optDate(row.ReportDate)
 		if !ok {
 			continue
@@ -320,8 +322,10 @@ func earningsFilings(rows []RawFiling) ([]EarningsFiling, error) {
 			AccessionNumber: accession,
 		})
 	}
-	if len(filings) == 0 {
-		return nil, schemaDriftf("DefiLlama filings index has no 10-K or 10-Q rows")
+	// A valid index may be empty or contain only forms we do not compose.
+	// That is missing earnings coverage, not a changed upstream schema.
+	if len(filings) == 0 && supportedRows > 0 {
+		return nil, schemaDriftf("DefiLlama filings index has no usable 10-K or 10-Q rows")
 	}
 	return filings, nil
 }
