@@ -1,29 +1,51 @@
-# Phase 1 architecture
+# Architecture
 
-## Scope
+The server is one Go binary. REST routes and MCP tools share service handlers,
+which request provider data through Monid and convert it to Financial Datasets
+response shapes. Compatibility covers the interface; coverage and data quality
+depend on the provider. See [compatibility notes](compatibility.md).
 
-Phase 1 serves US equities and ETFs. It exposes the Financial Datasets API contract: same 27 MCP tool names, same inputs, and response objects whose keys match the Financial Datasets OpenAPI schemas (captured 2026-09-04). Data is sourced independently through Monid; no Financial Datasets data or outputs are used. It does not claim the incumbent's latency, coverage, or redistribution rights.
+## Request flow
 
-## Flow
+1. The HTTP layer authenticates the caller, applies rate limits, and checks the response cache.
+2. REST routes or MCP tools dispatch to the shared service handlers.
+3. Handlers validate inputs and select provider endpoints from the discovery allowlist.
+4. The Monid client runs requests with the caller's key and polls asynchronous runs.
+5. Provider adapters validate and normalize the returned data.
+6. The transport formats the response and pagination links.
 
-1. Validate the MCP input before spending money.
-2. Inspect the selected Monid endpoint immediately before each run.
-3. Execute one or more live Monid runs.
-4. Poll bounded asynchronous runs.
-5. Check lifecycle status and provider HTTP status separately.
-6. Normalize provider output into a stable tool response.
-7. For filing sections, validate the selected SEC URL before the scrape call.
-8. Parse canonical SEC item headings locally and prefer body spans over table-of-contents spans.
-9. Return only Financial Datasets schema keys; append a receipts ledger row for every Monid call (success or failure).
+Provider errors propagate rather than becoming invented data. An empty result
+is distinct from malformed data. Some handlers compose multiple sources or use
+a fallback for a documented coverage gap.
 
-## Boundaries
+## Package boundaries
 
-- `client.py` owns Monid CLI execution and run-state handling.
-- `compat.py` owns the Financial Datasets response primitives: ErrorResponse, opaque cursors, pagination, facade URLs.
-- `fd.py` builds Financial Datasets record shapes in schema key order, omitting unsourced fields.
-- `receipts.py` owns the append-only measured-receipts ledger (`receipts/ledger.jsonl`).
-- `providers/us/` owns upstream adapters, the statements matrix parser, static SEC item maps, and local section parsing.
-- `service.py` composes adapters into workflows and returns Financial Datasets responses or ErrorResponse objects.
-- `server.py` registers all 27 Financial Datasets tools; unimplemented tools answer `not_implemented` at zero cost.
+| Package | Responsibility |
+| --- | --- |
+| `go/cmd/server` | Configuration, startup, and health checks |
+| `go/httpapi` | REST routing, authentication, rate limits, CORS, response caching, and static files |
+| `go/mcpserver` | MCP protocol and tool schemas |
+| `go/service` | Input validation, provider selection, orchestration, and upstream caching |
+| `go/providers` | Provider response parsing and normalization |
+| `go/monid` | Monid HTTP requests, polling, run errors, and artifacts |
+| `go/fd` | Response types, pagination, and optional receipts |
 
-The provider boundary accepts a country now, but phase 1 rejects values other than `US`. India remains a separate adapter in phase 2.
+The server uses Go's standard library. Python scripts in `tools/` are optional
+maintenance utilities, not runtime dependencies.
+
+## Caches and receipts
+
+The service caches upstream runs by provider, endpoint, and input. The REST
+layer also caches responses. Responses are shared across callers by default;
+`CACHE_PER_CALLER=1` separates REST cache entries. Optional Redis or Upstash
+storage shares cache entries across machines and deployments.
+
+Set `RECEIPTS_PATH` to record upstream calls, run IDs, and measured costs.
+Receipt writing is optional and best-effort. Keep generated ledgers out of Git.
+See [configuration](../.env.example) for the available settings.
+
+## Website and documentation
+
+`website/` is served by the Go binary. `docs-site/` is the separate Mintlify
+project. The canonical OpenAPI file is `docs/openapi.json`; its copy at
+`docs-site/api-reference/openapi.json` must remain identical.

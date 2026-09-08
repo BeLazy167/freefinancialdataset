@@ -1,100 +1,68 @@
 # Deploy
 
-This repo ships as one Go binary (Fly.io) plus a static Vercel deployment
-for `website/`.
+The Go binary serves the REST API, MCP endpoints at `/mcp` and `/api`, health
+checks, and `website/`. Mintlify hosts `docs-site/` separately. There is no
+separate static host required for the API's landing page.
 
-## Architecture
+## Run locally
 
-- `go/cmd/server` builds a single static binary that is the only publicly
-  reachable process: it serves the Financial Datasets-identical REST
-  routes, the MCP transport (mounted at both `/mcp` and `/api`), `/healthz`,
-  and the static site — all in-process, with no reverse-proxy hop to a
-  separate backend.
-- Every call runs on the **caller's own Monid API key** (`X-API-KEY`),
-  forwarded straight to `monid.Client.Run`: the caller's Monid wallet pays
-  for the caller's own usage. The server holds no funded Monid key of its
-  own (except the optional keyless demo key, below) and never logs or
-  stores a caller's key.
-- `go/service` implements the 27 Financial Datasets tools once and shares
-  them between REST and MCP; `go/httpapi` owns routing, auth, response
-  caching, rate limiting, CORS, and the static site.
-
-## Fly.io
-
-### 1. Build and deploy
+From the repository root:
 
 ```bash
-fly launch --no-deploy   # first time only; creates the app, keep fly.toml as-is
-fly deploy
+make run
 ```
 
-The Dockerfile builds `go/cmd/server` with `CGO_ENABLED=0` into a
-distroless image; there is no separate runtime dependency (no Python, no
-external CLI) to install.
+This supplies the website and provider allowlist paths and listens on port 8080.
+The server does not load `.env` files automatically. Export settings from
+[.env.example](../.env.example) before starting it.
 
-### 2. Configure (optional — sane defaults ship in `fly.toml`)
+## Deploy to Fly.io
+
+Install `flyctl`, sign in, and choose an app name:
 
 ```bash
-fly secrets set \
-  API_KEYS="key1,key2" \
-  DEMO_MONID_API_KEY="monid_live_..." \
-  CORS_ALLOWED_ORIGINS="https://your-own-frontend.example"
+make deploy APP=your-app-name
+make verify APP=your-app-name
+make connect APP=your-app-name
 ```
 
-- `API_KEYS`: optional comma-separated restriction on which caller-supplied
-  `X-API-KEY` values may call this server at all. This is **not** a shared
-  backend key — every accepted key is still the caller's own Monid key,
-  used to bill that caller's wallet. Leave unset to accept any well-formed,
-  non-empty key (the normal bring-your-own-key mode).
-- `DEMO_MONID_API_KEY`: optional. When set, keyless `GET` requests for the
-  instant-tryout tickers (`AAPL`, `MSFT`, `NVDA`) are served using this
-  operator-funded key, under a separate, stricter rate-limit bucket. Leave
-  unset to require a key for every request (keyless requests get 401).
-- `CORS_ALLOWED_ORIGINS`: set to your Vercel domain(s) once known. Leave
-  unset during initial testing to reflect any origin.
-- `PORT` (default `8080`), `STATIC_DIR` (default `website`),
-  `ALLOWLIST_PATH` (default `docs/monid_finance_discovery.json`), and
-  `RATE_LIMIT_PER_MINUTE` (default `60`) are already set in `fly.toml`.
+The Makefile creates the app if needed, builds remotely, stamps the current
+commit into the binary, and checks `/healthz` after deployment. The Dockerfile
+builds a static Go binary and packages it with the website and provider allowlist.
 
-`fly deploy` restarts machines to pick up new secrets; no build args are
-needed since there is nothing to inject at build time anymore.
+Requests use the caller's Monid key in `X-API-KEY`. Optional server settings
+include `API_KEYS` to restrict accepted keys, `DEMO_MONID_API_KEY` for the
+operator-funded demo, `CORS_ALLOWED_ORIGINS`, and shared cache configuration.
+See [.env.example](../.env.example) for details. Configure secrets on the host;
+do not commit their values.
 
-### 3. Verify
+## Automatic deployment
+
+[GitHub Actions](../.github/workflows/ci.yml) checks formatting, builds, runs
+`go vet`, and tests with the race detector. A push to `main` deploys to Fly.io
+only after those checks pass and when the repository has a `FLY_API_TOKEN`
+Actions secret. Pull requests run verification without deploying.
+
+A fork must configure its own Fly app in `fly.toml` and its own deployment token.
+Without the token, the workflow skips deployment.
+
+## Verify the hosted API
 
 ```bash
-fly status
-curl -s https://monid-finance-api.fly.dev/healthz
-# {"status":"ok"}
+curl https://financialdatasets.rip/healthz
 
-# Bring your own Monid API key — get one at https://monid.ai?fpr=dhruv-15136b:
-curl -s -H "X-API-KEY: <your-monid-api-key>" \
-  "https://monid-finance-api.fly.dev/financials/income-statements?ticker=AAPL"
-
-# Keyless demo route (only answers if DEMO_MONID_API_KEY is set; demo
-# tickers are AAPL, MSFT, NVDA):
-curl -s "https://monid-finance-api.fly.dev/prices?ticker=AAPL"
-
-# MCP JSON-RPC initialize:
-curl -s -X POST https://monid-finance-api.fly.dev/mcp \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: <your-monid-api-key>" \
-  -H "Accept: application/json, text/event-stream" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
+export MONID_API_KEY='your-monid-api-key'
+curl -H "X-API-KEY: $MONID_API_KEY" \
+  'https://financialdatasets.rip/prices?ticker=AAPL&start_date=2026-09-01&end_date=2026-09-02&interval=day'
 ```
 
-## Static pages
+Use your own deployment URL when testing a fork. The health response includes
+the build version; `make verify` compares it with the current commit.
 
-`website/` holds two files and is served by the Go binary itself from
-`STATIC_DIR`: the root page and the head-to-head comparison at `/kill.html`,
-with its dataset. There is no separate static host and no build step.
+## Other hosts and documentation
 
-Documentation lives at https://ripfinancialdatasets.mintlify.app, built by
-Mintlify from `docs-site/` on every push to `main`.
+`make docker` builds the container for other hosts. Expose port 8080 and supply
+configuration through environment variables.
 
-## Local equivalents
-
-```bash
-cd go && go build ./... && go vet ./... && go test ./...   # everything compiles and passes
-go run ./cmd/server                                          # serve locally on :8080
-docker build -t monid-finance-api .                          # full image (needs a running daemon)
-```
+The documentation site has its own publishing setup. See
+[docs-site/README.md](../docs-site/README.md).
